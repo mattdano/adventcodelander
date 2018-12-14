@@ -41,7 +41,7 @@ for y, line in enumerate(lines):
             tracks[(x + y * 1j)] = cartline
 
 
-m = {}
+trackturns = {}
 carts = {}
 lookup = {'<':-1,'^':-1j,'>':1,'v':-1j}
 tracker = defaultdict(list)
@@ -50,7 +50,7 @@ for i, row in enumerate(lines):
     for j, c in enumerate(row.replace('\n','')):
         loc = j - i * 1j
         if c in r'/\+':
-            m[loc] = c
+            trackturns[loc] = c
         elif c in lookup:
             carts[loc] = lookup[c], cycle([1j, 1, -1j])
 
@@ -58,22 +58,23 @@ counter=0
 while len(carts) > 1:
     for loc in sorted(carts, key=lambda x: (-x.imag, x.real)):
         if loc not in carts:
-            continue  # deleted due to collision
-        dxn, turn = carts.pop(loc)  # take out cart
-        loc += dxn  # update position
+            continue
+        dxn, turn = carts.pop(loc)
 
-        if loc in carts:  # handle collision
-            print('collision!', loc.real,loc.imag, '(cart', loc - dxn)
+        loc += dxn
+
+        if loc in carts:
+            print('Cart collision!', loc.real,loc.imag, '(cart', loc - dxn)
             del carts[loc]
             continue
 
-        track = m.get(loc)  # update direction
+        track = trackturns.get(loc)
         if track == '+':
             dxn = dxn * next(turn)
-        elif track is not None:  # / or \
+        elif track is not None:
             dxn *= 1j * (2 * ((track == '/') ^ (dxn.real == 0)) - 1)
 
-        carts[loc] = dxn, turn  # put cart back onto tracks
+        carts[loc] = dxn, turn
         tracker[counter].append(loc)
     counter+=1
 print('Last cart standing',carts)
